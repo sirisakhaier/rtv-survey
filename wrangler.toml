@@ -14,7 +14,7 @@ pages_build_output_dir = ".vercel/output/static"
 [[d1_databases]]
 binding = "DB"                    # Access as env.DB in your code
 database_name = "rtv-survey-db"  # Name in Cloudflare dashboard
-database_id = "YOUR_D1_DATABASE_ID"  # Replace after creating D1 database
+database_id = "369acc60-5bf7-4ff9-bb01-a21fdd82a03b"  # Replace after creating D1 database
 
 # ============================================================
 # R2 STORAGE BINDING
