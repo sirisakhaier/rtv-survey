@@ -1,0 +1,37 @@
+# Cloudflare Wrangler Configuration
+# Documentation: https://developers.cloudflare.com/workers/wrangler/configuration/
+
+name = "rtv-survey"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# Pages project configuration
+pages_build_output_dir = ".vercel/output/static"
+
+# ============================================================
+# D1 DATABASE BINDING
+# ============================================================
+[[d1_databases]]
+binding = "DB"                    # Access as env.DB in your code
+database_name = "rtv-survey-db"  # Name in Cloudflare dashboard
+database_id = "YOUR_D1_DATABASE_ID"  # Replace after creating D1 database
+
+# ============================================================
+# R2 STORAGE BINDING
+# ============================================================
+[[r2_buckets]]
+binding = "BUCKET"               # Access as env.BUCKET in your code
+bucket_name = "rtv-survey-files" # Name in Cloudflare dashboard
+
+# ============================================================
+# ENVIRONMENT VARIABLES
+# Set secrets via: wrangler secret put SECRET_NAME
+# ============================================================
+[vars]
+ADMIN_USERNAME = "admin"    # Change this!
+NEXT_PUBLIC_APP_URL = "https://rtv-survey.pages.dev"  # Your Cloudflare Pages URL
+
+# Secrets (set via wrangler secret put, NOT here):
+# ADMIN_PASSWORD = "your_secure_password"
+# RESEND_API_KEY = "re_xxxxxxxxxxxx"
+# JWT_SECRET = "your_random_jwt_secret"
