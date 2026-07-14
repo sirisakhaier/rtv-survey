@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 interface Product { id: number; category: string; sub_category: string; model: string; }
 
@@ -12,6 +12,41 @@ const SUB_CATEGORIES: Record<string, string[]> = {
   TV: ['OLED', 'QLED', 'LED', 'Mini LED'],
 };
 
+function parseCSV(text: string): string[][] {
+  const lines: string[][] = [];
+  let row: string[] = [];
+  let inQuotes = false;
+  let currentToken = '';
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const nextChar = text[i + 1];
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        currentToken += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      row.push(currentToken.trim());
+      currentToken = '';
+    } else if ((char === '\r' || char === '\n') && !inQuotes) {
+      if (char === '\r' && nextChar === '\n') i++;
+      row.push(currentToken.trim());
+      lines.push(row);
+      row = [];
+      currentToken = '';
+    } else {
+      currentToken += char;
+    }
+  }
+  if (currentToken || row.length > 0) {
+    row.push(currentToken.trim());
+    lines.push(row);
+  }
+  return lines.filter(r => r.some(cell => cell !== ''));
+}
+
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,11 +56,19 @@ export default function ProductsPage() {
   const [deleting, setDeleting] = useState<number | null>(null);
   const [filterCategory, setFilterCategory] = useState('');
   const [form, setForm] = useState({ category: '', sub_category: '', model: '' });
+  const [importing, setImporting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function load() {
     setLoading(true);
+    setErrorMsg('');
     const url = filterCategory ? `/api/products?category=${filterCategory}` : '/api/products';
-    fetch(url).then(r => r.json()).then((data: any) => setProducts(data.products || [])).finally(() => setLoading(false));
+    fetch(url)
+      .then(r => r.json())
+      .then((data: any) => setProducts(data.products || []))
+      .catch(() => setErrorMsg('ไม่สามารถดึงข้อมูลสินค้าได้'))
+      .finally(() => setLoading(false));
   }
   useEffect(() => { load(); }, [filterCategory]);
 
@@ -49,6 +92,104 @@ export default function ProductsPage() {
     setDeleting(null); load();
   }
 
+  function downloadSample() {
+    const csvContent = "\ufeffcategory,sub_category,model\nWM,Front Load,WF-XX1234\nRF,2 Door,RF-2D2001\nAC,Inverter,AC-INV001\nTV,OLED,TV-OL001";
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'sample_products.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  async function handleCSVUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    setErrorMsg('');
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const text = event.target?.result as string;
+        const parsed = parseCSV(text);
+        if (parsed.length <= 1) {
+          setErrorMsg('ไฟล์ CSV ไม่มีข้อมูลนำเข้า');
+          setImporting(false);
+          return;
+        }
+        const headers = parsed[0].map(h => h.trim().toLowerCase());
+        const catIdx = headers.indexOf('category');
+        const subCatIdx = headers.indexOf('sub_category');
+        const modelIdx = headers.indexOf('model');
+
+        if (catIdx === -1 || modelIdx === -1) {
+          setErrorMsg('คอลัมน์ไม่ถูกต้อง (ต้องการอย่างน้อย: category, model)');
+          setImporting(false);
+          return;
+        }
+
+        const dataToImport = parsed.slice(1).map(row => {
+          const cat = (row[catIdx] || '').trim().toUpperCase();
+          return {
+            category: cat,
+            sub_category: subCatIdx !== -1 ? row[subCatIdx] || '' : '',
+            model: row[modelIdx] || '',
+          };
+        }).filter(item => {
+          return CATEGORIES.includes(item.category) && item.model;
+        });
+
+        if (dataToImport.length === 0) {
+          setErrorMsg('ไม่มีข้อมูลสินค้าที่ถูกต้องตามเงื่อนไข (ประเภทสินค้าต้องเป็น: WM, RF, AC, TV)');
+          setImporting(false);
+          return;
+        }
+
+        const res = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dataToImport),
+        });
+        if (res.ok) {
+          const resData = await res.json() as any;
+          alert(`นำเข้าข้อมูลสินค้าสำเร็จทั้งหมด ${resData.count} รายการ`);
+          load();
+        } else {
+          const resData = await res.json() as any;
+          setErrorMsg(resData.error || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+        }
+      } catch {
+        setErrorMsg('เกิดข้อผิดพลาดในการประมวลผลไฟล์ CSV');
+      } finally {
+        setImporting(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  async function clearAll() {
+    if (!confirm('คำเตือน: คุณต้องการลบข้อมูลสินค้าทั้งหมดใช่หรือไม่?\nการกระทำนี้จะลบข้อมูลถาวรและไม่สามารถเรียกคืนได้!')) return;
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const res = await fetch('/api/products?clear_all=true', { method: 'DELETE' });
+      if (res.ok) {
+        alert('ล้างข้อมูลสินค้าทั้งหมดเรียบร้อยแล้ว');
+        load();
+      } else {
+        const resData = await res.json() as any;
+        setErrorMsg(resData.error || 'ไม่สามารถเคลียร์ข้อมูลได้ (เนื่องจากมีแบบสำรวจของพนักงานระบุข้อมูลสินค้าเหล่านี้อยู่)');
+      }
+    } catch {
+      setErrorMsg('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
@@ -56,12 +197,24 @@ export default function ProductsPage() {
           <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--navy)' }}>📦 Master Data สินค้า</h1>
           <p style={{ color: 'var(--text-muted)', marginTop: 4 }}>จัดการประเภทและรุ่นสินค้า</p>
         </div>
-        <button className="btn btn-primary" onClick={openAdd}>+ เพิ่มสินค้า</button>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button className="btn btn-sm btn-secondary" onClick={downloadSample}>📥 ตัวอย่าง CSV</button>
+          <button className="btn btn-sm btn-secondary" onClick={() => fileInputRef.current?.click()} disabled={importing}>
+            {importing ? '⏳ กำลังนำเข้า...' : '📁 นำเข้า CSV'}
+          </button>
+          <button className="btn btn-sm btn-danger" onClick={clearAll} disabled={loading}>🗑️ ล้างทั้งหมด</button>
+          <button className="btn btn-primary" onClick={openAdd}>+ เพิ่มสินค้า</button>
+        </div>
+        <input ref={fileInputRef} type="file" accept=".csv" style={{ display: 'none' }} onChange={handleCSVUpload} />
       </div>
+
+      {errorMsg && <div className="alert alert-error" style={{ marginBottom: 16 }}>⚠️ {errorMsg}</div>}
+
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         <button className={`btn btn-sm ${filterCategory === '' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilterCategory('')}>ทั้งหมด</button>
         {CATEGORIES.map(c => <button key={c} className={`btn btn-sm ${filterCategory === c ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilterCategory(c)}>{c}</button>)}
       </div>
+
       <div className="card">
         {loading ? <div style={{ padding: 60, textAlign: 'center' }}><div className="spinner" style={{ margin: '0 auto' }} /></div> : (
           <div className="table-wrapper" style={{ borderRadius: 0, border: 'none' }}>

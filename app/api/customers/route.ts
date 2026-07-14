@@ -33,12 +33,31 @@ export async function POST(request: NextRequest) {
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const db = getDB();
     const body = (await request.json()) as any;
+
+    if (Array.isArray(body)) {
+      const statements = body
+        .filter(item => item.customer_name && item.store_id && item.store_name)
+        .map(item =>
+          db.prepare(`INSERT INTO customers (customer_name, store_id, store_name, province, region) VALUES (?, ?, ?, ?, ?)`).bind(
+            item.customer_name,
+            item.store_id,
+            item.store_name,
+            item.province || '',
+            item.region || ''
+          )
+        );
+      if (statements.length > 0) {
+        await db.batch(statements);
+      }
+      return NextResponse.json({ success: true, count: statements.length });
+    }
+
     const { customer_name, store_id, store_name, province, region } = body;
     if (!customer_name || !store_id || !store_name) return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     const result = await db.prepare(`INSERT INTO customers (customer_name, store_id, store_name, province, region) VALUES (?, ?, ?, ?, ?)`).bind(customer_name, store_id, store_name, province || '', region || '').run();
     return NextResponse.json({ id: result.meta.last_row_id, success: true });
   } catch {
-    return NextResponse.json({ error: 'Failed to create customer' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create customer(s)' }, { status: 500 });
   }
 }
 
@@ -65,11 +84,22 @@ export async function DELETE(request: NextRequest) {
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const db = getDB();
     const url = new URL(request.url);
+
+    if (url.searchParams.get('clear_all') === 'true') {
+      // Clear all master data
+      await db.prepare(`DELETE FROM customers`).run();
+      try {
+        await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'customers'`).run();
+      } catch { /* ignore if sequence doesn't exist */ }
+      return NextResponse.json({ success: true, cleared: true });
+    }
+
     const id = url.searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
     await db.prepare(`UPDATE customers SET is_active=0, updated_at=datetime('now') WHERE id=?`).bind(id).run();
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: 'Failed to delete customer' }, { status: 500 });
+  } catch (err: any) {
+    // If it fails due to foreign key or any other reason, return description
+    return NextResponse.json({ error: err.message || 'Failed to delete customer' }, { status: 500 });
   }
 }
