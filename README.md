@@ -10,7 +10,7 @@
 | API | Cloudflare Workers (Edge Runtime) |
 | Database | Cloudflare D1 (SQLite) |
 | File Storage | Cloudflare R2 (Active) |
-| Deployment | Cloudflare Pages |
+| Deployment | Cloudflare Pages (Configured) |
 | CI/CD | GitHub Actions |
 | Email | Resend |
 
