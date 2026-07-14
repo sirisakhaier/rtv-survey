@@ -9,7 +9,7 @@
 | Frontend | Next.js 16 + TypeScript + Tailwind CSS |
 | API | Cloudflare Workers (Edge Runtime) |
 | Database | Cloudflare D1 (SQLite) |
-| File Storage | Cloudflare R2 |
+| File Storage | Cloudflare R2 (Active) |
 | Deployment | Cloudflare Pages |
 | CI/CD | GitHub Actions |
 | Email | Resend |
