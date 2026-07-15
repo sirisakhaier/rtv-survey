@@ -57,8 +57,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
       <nav style={{ background: 'linear-gradient(135deg, var(--navy) 0%, var(--green) 100%)', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 60, position: 'sticky', top: 0, zIndex: 100, boxShadow: '0 2px 20px rgba(0,0,0,0.2)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 24 }}>📋</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <img src="/haier-logo.png" alt="Haier Logo" style={{ height: 28, borderRadius: 4 }} />
           <span style={{ color: 'white', fontWeight: 700, fontSize: 18 }}>RTV Admin</span>
         </div>
         <button onClick={logout} className="btn btn-sm" style={{ background: 'rgba(255,255,255,0.15)', color: 'white', border: '1px solid rgba(255,255,255,0.3)' }}>ออกจากระบบ</button>
@@ -72,7 +72,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </a>
           ))}
           <div style={{ margin: '20px 16px 0', paddingTop: 20, borderTop: '1px solid var(--border)' }}>
-            <a href="/" target="_blank" style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', fontSize: 14, textDecoration: 'none' }}>🔗 ดูหน้าแบบสำรวจ</a>
+            <a href="/" target="_blank" style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', fontSize: 14, textDecoration: 'none', marginBottom: 16 }}>🔗 ดูหน้าแบบสำรวจ</a>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.4 }}>
+              <strong>Sell out team</strong>
+              <br />Haier Electrical Appliances (Thailand) Co., Ltd.
+            </div>
           </div>
         </aside>
         <main style={{ flex: 1, padding: 24, overflowX: 'auto' }}>{children}</main>

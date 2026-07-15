@@ -115,9 +115,12 @@ export default function LandingPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(160deg, #005AAB 0%, #002f6c 50%, #005AAB 100%)' }}>
       <div style={{ textAlign: 'center', padding: '40px 16px 20px' }}>
-        <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 32 }}>📋</div>
+        <img src="/haier-logo.png" alt="Haier Logo" style={{ height: 60, margin: '0 auto 16px', display: 'block', borderRadius: 8 }} />
         <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>RTV Survey</h1>
-        <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 16 }}>ระบบสำรวจสินค้าคืน (Return to Vendor)</p>
+        <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 16 }}>ระบบสำรวจสินค้าคืน (Return to Vendor)</p>
+        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 6, fontWeight: 500 }}>
+          Sell out team • Haier Electrical Appliances (Thailand) Company Limited
+        </p>
       </div>
 
       <div style={{ padding: '0 16px 40px', maxWidth: 480, margin: '0 auto' }}>
@@ -161,6 +164,10 @@ export default function LandingPage() {
             <button className="btn btn-primary btn-full" onClick={checkDraftAndProceed} disabled={loading || !selectedStore || !name.trim() || !phone.trim()}>
               {loading ? '⏳ กำลังตรวจสอบ...' : 'เริ่มกรอกแบบสำรวจ →'}
             </button>
+          </div>
+          <div style={{ textAlign: 'center', padding: '16px 24px', borderTop: '1px solid var(--border)', background: '#fafafa', color: 'var(--text-muted)', fontSize: 11, borderBottomLeftRadius: 16, borderBottomRightRadius: 16, lineHeight: 1.4 }}>
+            Haier Electrical Appliances (Thailand) Company Limited
+            <br /><span style={{ fontWeight: 600 }}>Sell out team</span>
           </div>
         </div>
       </div>
