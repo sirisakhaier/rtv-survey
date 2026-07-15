@@ -29,6 +29,10 @@ export async function GET(request: NextRequest) {
       detailsMap[header.id] = details.results as any as SurveyDetail[];
     }
 
+    if (url.searchParams.get('format') === 'json') {
+      return NextResponse.json({ headers: headerResults, detailsMap });
+    }
+
     const buffer = generateExcel(headerResults, detailsMap, includePhotos);
     const date = new Date().toISOString().split('T')[0];
     const filename = `RTV_Survey_${date}${includePhotos ? '_with_photos' : ''}.xlsx`;

@@ -14,6 +14,20 @@ export default function SurveysPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [exporting, setExporting] = useState<'with' | 'without' | null>(null);
+
+  async function handleExport(withPhotos: boolean) {
+    setExporting(withPhotos ? 'with' : 'without');
+    try {
+      const { exportToExcelWithPhotos } = await import('@/lib/clientExport');
+      await exportToExcelWithPhotos(withPhotos);
+    } catch (err) {
+      alert('เกิดข้อผิดพลาดในการส่งออกไฟล์ Excel');
+      console.error(err);
+    } finally {
+      setExporting(null);
+    }
+  }
 
   function load(p = 1) {
     setLoading(true);
@@ -43,8 +57,12 @@ export default function SurveysPage() {
           <p style={{ color: 'var(--text-muted)', marginTop: 4 }}>ทั้งหมด {total} รายการ</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <a href="/api/export?include_photos=true" className="btn btn-primary btn-sm">📥 Export พร้อมรูป</a>
-          <a href="/api/export?include_photos=false" className="btn btn-secondary btn-sm">📄 Export ไม่มีรูป</a>
+          <button onClick={() => handleExport(true)} className="btn btn-primary btn-sm" disabled={exporting !== null}>
+            {exporting === 'with' ? '⏳ กำลังส่งออกพร้อมรูป...' : '📥 Export พร้อมรูป'}
+          </button>
+          <button onClick={() => handleExport(false)} className="btn btn-secondary btn-sm" disabled={exporting !== null}>
+            {exporting === 'without' ? '⏳ กำลังส่งออก...' : '📄 Export ไม่มีรูป'}
+          </button>
         </div>
       </div>
 

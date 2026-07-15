@@ -12,10 +12,24 @@ interface Stats {
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState<'with' | 'without' | null>(null);
 
   useEffect(() => {
     fetch('/api/stats').then(r => r.json()).then((data: any) => setStats(data)).finally(() => setLoading(false));
   }, []);
+
+  async function handleExport(withPhotos: boolean) {
+    setExporting(withPhotos ? 'with' : 'without');
+    try {
+      const { exportToExcelWithPhotos } = await import('@/lib/clientExport');
+      await exportToExcelWithPhotos(withPhotos);
+    } catch (err) {
+      alert('เกิดข้อผิดพลาดในการส่งออกไฟล์ Excel');
+      console.error(err);
+    } finally {
+      setExporting(null);
+    }
+  }
 
   const statCards = [
     { label: 'แบบสำรวจทั้งหมด', value: stats?.totalSurveys ?? '-', icon: '📋', color: '#005AAB' },
@@ -72,8 +86,12 @@ export default function AdminDashboard() {
       </div>
 
       <div style={{ marginTop: 24, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-        <a href="/api/export?include_photos=true" className="btn btn-primary">📥 Export Excel (พร้อมรูป)</a>
-        <a href="/api/export?include_photos=false" className="btn btn-secondary">📄 Export Excel (ไม่มีรูป)</a>
+        <button onClick={() => handleExport(true)} className="btn btn-primary" disabled={exporting !== null}>
+          {exporting === 'with' ? '⏳ กำลังส่งออกพร้อมรูป...' : '📥 Export Excel (พร้อมรูป)'}
+        </button>
+        <button onClick={() => handleExport(false)} className="btn btn-secondary" disabled={exporting !== null}>
+          {exporting === 'without' ? '⏳ กำลังส่งออก...' : '📄 Export Excel (ไม่มีรูป)'}
+        </button>
       </div>
     </div>
   );
