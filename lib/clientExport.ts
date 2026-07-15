@@ -11,7 +11,7 @@ export async function exportToExcelWithPhotos(includePhotos: boolean) {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('RTV Survey Data');
 
-  // Define columns
+  // Define columns (always include image columns for consistency)
   const columns = [
     { header: 'รหัสแบบสำรวจ', key: 'survey_id', width: 15 },
     { header: 'ชื่อห้าง', key: 'customer_name', width: 18 },
@@ -29,21 +29,16 @@ export async function exportToExcelWithPhotos(includePhotos: boolean) {
     { header: 'อาการเสีย', key: 'damage_issue', width: 25 },
     { header: 'มีกล่อง', key: 'box_package', width: 12 },
     { header: 'มีใบรายงานช่าง', key: 'service_doc', width: 15 },
+    { header: 'รูปสินค้า 1', key: 'product_photo_1', width: 22 },
+    { header: 'รูปสินค้า 2', key: 'product_photo_2', width: 22 },
+    { header: 'รูปสินค้า 3', key: 'product_photo_3', width: 22 },
+    { header: 'รูปกล่อง 1', key: 'box_photo_1', width: 22 },
+    { header: 'รูปกล่อง 2', key: 'box_photo_2', width: 22 },
+    { header: 'รูปกล่อง 3', key: 'box_photo_3', width: 22 },
+    { header: 'รูปใบรายงานช่าง 1', key: 'service_doc_photo_1', width: 22 },
+    { header: 'รูปใบรายงานช่าง 2', key: 'service_doc_photo_2', width: 22 },
+    { header: 'รูปใบรายงานช่าง 3', key: 'service_doc_photo_3', width: 22 }
   ];
-
-  if (includePhotos) {
-    columns.push(
-      { header: 'รูปสินค้า 1', key: 'product_photo_1', width: 18 },
-      { header: 'รูปสินค้า 2', key: 'product_photo_2', width: 18 },
-      { header: 'รูปสินค้า 3', key: 'product_photo_3', width: 18 },
-      { header: 'รูปกล่อง 1', key: 'box_photo_1', width: 18 },
-      { header: 'รูปกล่อง 2', key: 'box_photo_2', width: 18 },
-      { header: 'รูปกล่อง 3', key: 'box_photo_3', width: 18 },
-      { header: 'รูปใบรายงานช่าง 1', key: 'service_doc_photo_1', width: 18 },
-      { header: 'รูปใบรายงานช่าง 2', key: 'service_doc_photo_2', width: 18 },
-      { header: 'รูปใบรายงานช่าง 3', key: 'service_doc_photo_3', width: 18 }
-    );
-  }
 
   worksheet.columns = columns;
 
@@ -106,34 +101,58 @@ export async function exportToExcelWithPhotos(includePhotos: boolean) {
           service_doc: detail.service_doc,
         });
 
-        // Set row height if including photos to fit them
         const currentRow = worksheet.getRow(rowIndex);
         currentRow.alignment = { vertical: 'middle', horizontal: 'center' };
         
+        // Parse photo arrays
+        const pPhotos = JSON.parse(detail.product_photos || '[]') as string[];
+        const bPhotos = JSON.parse(detail.box_photos || '[]') as string[];
+        const sPhotos = JSON.parse(detail.service_doc_photos || '[]') as string[];
+
         if (includePhotos) {
           currentRow.height = 80;
 
-          // Parse photo arrays
-          const pPhotos = JSON.parse(detail.product_photos || '[]') as string[];
-          const bPhotos = JSON.parse(detail.box_photos || '[]') as string[];
-          const sPhotos = JSON.parse(detail.service_doc_photos || '[]') as string[];
-
-          // Columns index mapping:
-          // product_photo_1: 17, product_photo_2: 18, product_photo_3: 19
-          // box_photo_1: 20, box_photo_2: 21, box_photo_3: 22
-          // service_doc_photo_1: 23, service_doc_photo_2: 24, service_doc_photo_3: 25
-
+          // Add cell hyperlinks & collect images to load
           pPhotos.slice(0, 3).forEach((url, idx) => {
-            imagePromises.push({ url, col: 17 + idx, row: rowIndex });
+            const col = 17 + idx;
+            const cell = worksheet.getCell(rowIndex, col);
+            cell.value = { text: 'ดูรูปภาพ', hyperlink: url };
+            cell.font = { color: { argb: 'FF0000FF' }, underline: true };
+            imagePromises.push({ url, col, row: rowIndex });
           });
           bPhotos.slice(0, 3).forEach((url, idx) => {
-            imagePromises.push({ url, col: 20 + idx, row: rowIndex });
+            const col = 20 + idx;
+            const cell = worksheet.getCell(rowIndex, col);
+            cell.value = { text: 'ดูรูปภาพ', hyperlink: url };
+            cell.font = { color: { argb: 'FF0000FF' }, underline: true };
+            imagePromises.push({ url, col, row: rowIndex });
           });
           sPhotos.slice(0, 3).forEach((url, idx) => {
-            imagePromises.push({ url, col: 23 + idx, row: rowIndex });
+            const col = 23 + idx;
+            const cell = worksheet.getCell(rowIndex, col);
+            cell.value = { text: 'ดูรูปภาพ', hyperlink: url };
+            cell.font = { color: { argb: 'FF0000FF' }, underline: true };
+            imagePromises.push({ url, col, row: rowIndex });
           });
         } else {
           currentRow.height = 22;
+
+          // Write plain URL hyperlinks in cell blocks directly without images
+          pPhotos.slice(0, 3).forEach((url, idx) => {
+            const cell = worksheet.getCell(rowIndex, 17 + idx);
+            cell.value = { text: url, hyperlink: url };
+            cell.font = { color: { argb: 'FF0000FF' }, underline: true };
+          });
+          bPhotos.slice(0, 3).forEach((url, idx) => {
+            const cell = worksheet.getCell(rowIndex, 20 + idx);
+            cell.value = { text: url, hyperlink: url };
+            cell.font = { color: { argb: 'FF0000FF' }, underline: true };
+          });
+          sPhotos.slice(0, 3).forEach((url, idx) => {
+            const cell = worksheet.getCell(rowIndex, 23 + idx);
+            cell.value = { text: url, hyperlink: url };
+            cell.font = { color: { argb: 'FF0000FF' }, underline: true };
+          });
         }
 
         rowIndex++;
@@ -141,7 +160,7 @@ export async function exportToExcelWithPhotos(includePhotos: boolean) {
     }
   }
 
-  // 3. Load and embed images
+  // 3. Load and embed images (for Export with pictures)
   if (includePhotos && imagePromises.length > 0) {
     for (const imgInfo of imagePromises) {
       try {
