@@ -136,6 +136,17 @@ function SurveyForm() {
     setModels([]);
   }
 
+  function deleteCurrentProduct() {
+    if (details.length <= 1) return;
+    if (!confirm('คุณต้องการลบข้อมูลสินค้าของรายการนี้ใช่หรือไม่?')) return;
+    setError('');
+    setDetails(prev => {
+      const next = prev.filter((_, i) => i !== currentIdx);
+      return next;
+    });
+    setCurrentIdx(prev => (prev >= details.length - 1 ? details.length - 2 : prev));
+  }
+
   async function handleSubmit() {
     if (!current.category || !current.model) { setError('กรุณาเลือกประเภทสินค้าและรุ่น'); return; }
     if (!current.damage_issue.trim()) { setError('กรุณาระบุอาการเสีย'); return; }
@@ -157,7 +168,7 @@ function SurveyForm() {
 
   if (submitted) {
     return (
-      <div style={{ minHeight: '100vh', background: 'linear-gradient(160deg, #1e3a5f 0%, #2d6a4f 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(160deg, #005AAB 0%, #002f6c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
         <div className="card" style={{ maxWidth: 400, width: '100%', textAlign: 'center', padding: 40 }}>
           <div style={{ fontSize: 64, marginBottom: 16 }}>✅</div>
           <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--success)', marginBottom: 8 }}>ส่งแบบสำรวจสำเร็จ!</h2>
@@ -268,6 +279,9 @@ function SurveyForm() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24 }}>
               <button className="btn btn-secondary" onClick={addAnotherProduct} disabled={submitting}>+ เพิ่มสินค้าอีกรายการ</button>
+              {details.length > 1 && (
+                <button className="btn btn-danger" onClick={deleteCurrentProduct} disabled={submitting}>🗑️ ลบรายการสินค้านี้</button>
+              )}
               <button className="btn btn-primary" onClick={handleSubmit} disabled={submitting}>
                 {submitting ? '⏳ กำลังส่ง...' : `✅ ส่งแบบสำรวจ (${details.length} รายการ)`}
               </button>

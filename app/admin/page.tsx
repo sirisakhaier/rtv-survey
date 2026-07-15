@@ -18,8 +18,8 @@ export default function AdminDashboard() {
   }, []);
 
   const statCards = [
-    { label: 'แบบสำรวจทั้งหมด', value: stats?.totalSurveys ?? '-', icon: '📋', color: '#1e3a5f' },
-    { label: 'สินค้าที่รายงาน', value: stats?.totalProductsReported ?? '-', icon: '📦', color: '#2d6a4f' },
+    { label: 'แบบสำรวจทั้งหมด', value: stats?.totalSurveys ?? '-', icon: '📋', color: '#005AAB' },
+    { label: 'สินค้าที่รายงาน', value: stats?.totalProductsReported ?? '-', icon: '📦', color: '#002f6c' },
     { label: 'สาขาในระบบ', value: stats?.totalStores ?? '-', icon: '🏪', color: '#d69e2e' },
   ];
 

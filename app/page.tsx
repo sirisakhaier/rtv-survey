@@ -113,7 +113,7 @@ export default function LandingPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(160deg, #1e3a5f 0%, #2d6a4f 50%, #1e3a5f 100%)' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(160deg, #005AAB 0%, #002f6c 50%, #005AAB 100%)' }}>
       <div style={{ textAlign: 'center', padding: '40px 16px 20px' }}>
         <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 32 }}>📋</div>
         <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>RTV Survey</h1>

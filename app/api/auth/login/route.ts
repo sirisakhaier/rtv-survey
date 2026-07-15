@@ -10,18 +10,31 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as any;
     const { username, password } = body;
     if (!username || !password) return NextResponse.json({ error: 'Username and password required' }, { status: 400 });
-    const validUsername = env.ADMIN_USERNAME || 'admin';
-    const validPassword = env.ADMIN_PASSWORD;
-    if (!validPassword) return NextResponse.json({ error: 'Server not configured' }, { status: 500 });
-    if (username !== validUsername || password !== validPassword) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    
+    const validAdminUsername = env.ADMIN_USERNAME || 'admin';
+    const validAdminPassword = env.ADMIN_PASSWORD;
+    const validViewerUsername = env.VIEWER_USERNAME || 'viewer';
+    const validViewerPassword = env.VIEWER_PASSWORD || 'viewer1234';
+
+    let role: 'admin' | 'viewer' | null = null;
+
+    if (username === validAdminUsername && password === validAdminPassword) {
+      role = 'admin';
+    } else if (username === validViewerUsername && password === validViewerPassword) {
+      role = 'viewer';
     }
+
+    if (!role) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return NextResponse.json({ error: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' }, { status: 401 });
+    }
+
     const jwtSecret = env.JWT_SECRET;
     if (!jwtSecret) return NextResponse.json({ error: 'JWT_SECRET not configured' }, { status: 500 });
-    const token = await createSessionToken(username, jwtSecret);
+    
+    const token = await createSessionToken(username, role, jwtSecret);
     const cookieString = getSessionCookie(token);
-    const response = NextResponse.json({ success: true, username });
+    const response = NextResponse.json({ success: true, username, role });
     response.headers.set('Set-Cookie', cookieString);
     return response;
   } catch {

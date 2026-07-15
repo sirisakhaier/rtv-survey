@@ -27,7 +27,7 @@ export async function sendSurveyNotification(
 <!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>แบบสำรวจ RTV ใหม่</title></head>
 <body style="font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px">
 <div style="max-width:600px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.1)">
-<div style="background:linear-gradient(135deg,#1e3a5f,#2d6a4f);padding:30px;text-align:center">
+<div style="background:linear-gradient(135deg,#005AAB,#002f6c);padding:30px;text-align:center">
 <h1 style="color:white;margin:0;font-size:24px">📋 แบบสำรวจ RTV ใหม่</h1>
 <p style="color:rgba(255,255,255,.8);margin:8px 0 0">มีการส่งแบบสำรวจใหม่เข้ามาในระบบ</p>
 </div>
@@ -41,7 +41,7 @@ export async function sendSurveyNotification(
 <tr><td style="padding:12px;color:#666">🕐 เวลาส่ง</td><td style="padding:12px;font-weight:600">${formattedDate}</td></tr>
 </table>
 <div style="margin-top:30px;text-align:center">
-<a href="${appUrl}/admin/surveys" style="display:inline-block;background:linear-gradient(135deg,#1e3a5f,#2d6a4f);color:white;padding:14px 30px;border-radius:8px;text-decoration:none;font-weight:600">ดูรายละเอียดในระบบ →</a>
+<a href="${appUrl}/admin/surveys" style="display:inline-block;background:linear-gradient(135deg,#005AAB,#002f6c);color:white;padding:14px 30px;border-radius:8px;text-decoration:none;font-weight:600">ดูรายละเอียดในระบบ →</a>
 </div>
 </div>
 <div style="background:#f8f8f8;padding:20px;text-align:center;color:#999;font-size:12px"><p>RTV Survey Management System</p></div>

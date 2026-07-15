@@ -8,15 +8,30 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const [checking, setChecking] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
+  const [role, setRole] = useState<'admin' | 'viewer' | null>(null);
   const isLoginPage = pathname === '/admin/login';
 
   useEffect(() => {
     if (isLoginPage) { setChecking(false); return; }
     fetch('/api/auth/check')
-      .then(r => { if (r.ok) { setAuthenticated(true); } else { router.replace('/admin/login'); } })
+      .then(r => r.json())
+      .then((data: any) => {
+        if (data.authenticated) {
+          setAuthenticated(true);
+          setRole(data.role || 'admin');
+        } else {
+          router.replace('/admin/login');
+        }
+      })
       .catch(() => router.replace('/admin/login'))
       .finally(() => setChecking(false));
   }, [pathname, isLoginPage, router]);
+
+  useEffect(() => {
+    if (role === 'viewer' && (pathname === '/admin/customers' || pathname === '/admin/products')) {
+      router.replace('/admin');
+    }
+  }, [role, pathname, router]);
 
   async function logout() {
     await fetch('/api/auth/login', { method: 'DELETE' });
@@ -30,9 +45,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { href: '/admin', label: 'Dashboard', icon: '📊' },
     { href: '/admin/surveys', label: 'แบบสำรวจ', icon: '📋' },
-    { href: '/admin/customers', label: 'ห้าง/สาขา', icon: '🏪' },
-    { href: '/admin/products', label: 'สินค้า', icon: '📦' },
   ];
+
+  if (role === 'admin') {
+    navItems.push(
+      { href: '/admin/customers', label: 'ห้าง/สาขา', icon: '🏪' },
+      { href: '/admin/products', label: 'สินค้า', icon: '📦' }
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>

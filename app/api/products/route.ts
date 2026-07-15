@@ -2,7 +2,7 @@ export const runtime = 'edge';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getDB, getEnv } from '@/lib/db';
-import { validateSession } from '@/lib/auth';
+import { validateAdminSession } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const env = getEnv();
-    const isAdmin = await validateSession(request, env.JWT_SECRET);
+    const isAdmin = await validateAdminSession(request, env.JWT_SECRET);
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const db = getDB();
     const body = (await request.json()) as any;
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const env = getEnv();
-    const isAdmin = await validateSession(request, env.JWT_SECRET);
+    const isAdmin = await validateAdminSession(request, env.JWT_SECRET);
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const db = getDB();
     const body = (await request.json()) as any;
@@ -72,7 +72,7 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const env = getEnv();
-    const isAdmin = await validateSession(request, env.JWT_SECRET);
+    const isAdmin = await validateAdminSession(request, env.JWT_SECRET);
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const db = getDB();
     const url = new URL(request.url);

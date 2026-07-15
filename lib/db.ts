@@ -9,6 +9,8 @@ export interface Env {
   BUCKET: R2Bucket;
   ADMIN_USERNAME: string;
   ADMIN_PASSWORD: string;
+  VIEWER_USERNAME?: string;
+  VIEWER_PASSWORD?: string;
   JWT_SECRET: string;
   RESEND_API_KEY: string;
   ADMIN_EMAIL: string;

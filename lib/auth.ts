@@ -33,14 +33,14 @@ async function verify(token: string, secret: string): Promise<object | null> {
   }
 }
 
-export async function createSessionToken(username: string, jwtSecret: string): Promise<string> {
+export async function createSessionToken(username: string, role: string, jwtSecret: string): Promise<string> {
   return sign(
-    { sub: username, role: 'admin', iat: Date.now(), exp: Date.now() + COOKIE_MAX_AGE * 1000 },
+    { sub: username, role, iat: Date.now(), exp: Date.now() + COOKIE_MAX_AGE * 1000 },
     jwtSecret
   );
 }
 
-export async function validateSession(request: Request, jwtSecret: string): Promise<boolean> {
+export async function getSessionPayload(request: Request, jwtSecret: string): Promise<any | null> {
   const cookie = request.headers.get('cookie') || '';
   const cookies = Object.fromEntries(
     cookie.split(';').map(c => {
@@ -49,9 +49,18 @@ export async function validateSession(request: Request, jwtSecret: string): Prom
     })
   );
   const token = cookies[ADMIN_COOKIE_NAME];
-  if (!token) return false;
-  const payload = await verify(token, jwtSecret);
+  if (!token) return null;
+  return verify(token, jwtSecret);
+}
+
+export async function validateSession(request: Request, jwtSecret: string): Promise<boolean> {
+  const payload = await getSessionPayload(request, jwtSecret);
   return payload !== null;
+}
+
+export async function validateAdminSession(request: Request, jwtSecret: string): Promise<boolean> {
+  const payload = await getSessionPayload(request, jwtSecret);
+  return payload !== null && payload.role === 'admin';
 }
 
 export function getSessionCookie(token: string): string {

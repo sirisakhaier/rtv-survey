@@ -29,9 +29,11 @@ bucket_name = "rtv-survey-files" # Name in Cloudflare dashboard
 # ============================================================
 [vars]
 ADMIN_USERNAME = "admin"    # Change this!
+VIEWER_USERNAME = "viewer"  # Change this!
 NEXT_PUBLIC_APP_URL = "https://rtv-survey.pages.dev"  # Your Cloudflare Pages URL
 
 # Secrets (set via wrangler secret put, NOT here):
 # ADMIN_PASSWORD = "your_secure_password"
+# VIEWER_PASSWORD = "viewer_secure_password"
 # RESEND_API_KEY = "re_xxxxxxxxxxxx"
 # JWT_SECRET = "your_random_jwt_secret"

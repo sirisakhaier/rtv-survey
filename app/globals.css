@@ -2,11 +2,11 @@
 @import "tailwindcss";
 
 :root {
-  --navy: #1e3a5f;
-  --navy-dark: #152840;
-  --navy-light: #2a4f7c;
-  --green: #2d6a4f;
-  --green-light: #40916c;
+  --navy: #005AAB;
+  --navy-dark: #002f6c;
+  --navy-light: #0076c5;
+  --green: #002f6c;
+  --green-light: #005AAB;
   --accent: #f59e0b;
   --bg-primary: #f0f4f8;
   --bg-card: #ffffff;
