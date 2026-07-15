@@ -114,12 +114,15 @@ export default function LandingPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(160deg, #005AAB 0%, #002f6c 50%, #005AAB 100%)' }}>
-      <div style={{ textAlign: 'center', padding: '40px 16px 20px' }}>
-        <img src="/haier-logo.png" alt="Haier Logo" style={{ height: 60, margin: '0 auto 16px', display: 'block', borderRadius: 8 }} />
-        <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>RTV Survey</h1>
+      <div style={{ textAlign: 'center', padding: '45px 16px 20px' }}>
+        <img src="/haier-logo.png" alt="Haier Logo" style={{ height: 110, margin: '0 auto 8px', display: 'block', borderRadius: 12 }} />
+        <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, fontWeight: 600, marginBottom: 16 }}>
+          Haier Electrical Appliances (Thailand) Company Limited
+        </div>
+        <h1 style={{ color: 'white', fontSize: 32, fontWeight: 800, marginBottom: 8 }}>RTV Survey</h1>
         <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 16 }}>ระบบสำรวจสินค้าคืน (Return to Vendor)</p>
         <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 6, fontWeight: 500 }}>
-          Sell out team • Haier Electrical Appliances (Thailand) Company Limited
+          Sell out team
         </p>
       </div>
 

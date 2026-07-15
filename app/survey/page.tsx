@@ -183,15 +183,18 @@ function SurveyForm() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
       <div style={{ background: 'linear-gradient(135deg, var(--navy) 0%, var(--green) 100%)', padding: '20px 16px', color: 'white' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
           <button onClick={() => router.push('/')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.8)', cursor: 'pointer', fontSize: 14 }}>← กลับ</button>
-          <img src="/haier-logo.png" alt="Haier Logo" style={{ height: 26, borderRadius: 4 }} />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+            <img src="/haier-logo.png" alt="Haier Logo" style={{ height: 38, borderRadius: 4 }} />
+            <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: 7, fontWeight: 500, marginTop: 2, textAlign: 'right' }}>Haier Electrical Appliances (Thailand) Co., Ltd.</span>
+          </div>
         </div>
         <h1 style={{ fontSize: 20, fontWeight: 700 }}>แบบสำรวจ RTV</h1>
         <p style={{ opacity: 0.8, fontSize: 14 }}>{customerName} • {storeName} ({storeId})</p>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
           <p style={{ opacity: 0.7, fontSize: 13 }}>ผู้ให้ข้อมูล: {respondentName} | {respondentPhone}</p>
-          <p style={{ opacity: 0.7, fontSize: 11, fontWeight: 500 }}>Sell out team • Haier</p>
+          <p style={{ opacity: 0.7, fontSize: 11, fontWeight: 500 }}>Sell out team</p>
         </div>
       </div>
 

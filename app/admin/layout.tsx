@@ -56,9 +56,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
-      <nav style={{ background: 'linear-gradient(135deg, var(--navy) 0%, var(--green) 100%)', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 60, position: 'sticky', top: 0, zIndex: 100, boxShadow: '0 2px 20px rgba(0,0,0,0.2)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <img src="/haier-logo.png" alt="Haier Logo" style={{ height: 28, borderRadius: 4 }} />
+      <nav style={{ background: 'linear-gradient(135deg, var(--navy) 0%, var(--green) 100%)', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 75, position: 'sticky', top: 0, zIndex: 100, boxShadow: '0 2px 20px rgba(0,0,0,0.2)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            <img src="/haier-logo.png" alt="Haier Logo" style={{ height: 38, borderRadius: 4 }} />
+            <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: 8, fontWeight: 500, marginTop: 2 }}>Haier Electrical Appliances (Thailand) Co., Ltd.</span>
+          </div>
+          <span style={{ height: 24, width: 1, background: 'rgba(255,255,255,0.3)', margin: '0 4px' }} />
           <span style={{ color: 'white', fontWeight: 700, fontSize: 18 }}>RTV Admin</span>
         </div>
         <button onClick={logout} className="btn btn-sm" style={{ background: 'rgba(255,255,255,0.15)', color: 'white', border: '1px solid rgba(255,255,255,0.3)' }}>ออกจากระบบ</button>

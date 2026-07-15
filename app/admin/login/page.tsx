@@ -31,7 +31,10 @@ export default function AdminLoginPage() {
     <div style={{ minHeight: '100vh', background: 'linear-gradient(160deg, #005AAB 0%, #002f6c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div className="card" style={{ maxWidth: 400, width: '100%' }}>
         <div className="card-header" style={{ textAlign: 'center' }}>
-          <img src="/haier-logo.png" alt="Haier Logo" style={{ height: 48, margin: '0 auto 12px', display: 'block', borderRadius: 6 }} />
+          <img src="/haier-logo.png" alt="Haier Logo" style={{ height: 80, margin: '0 auto 8px', display: 'block', borderRadius: 10 }} />
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 12 }}>
+            Haier Electrical Appliances (Thailand) Company Limited
+          </div>
           <h1 style={{ fontSize: 22, fontWeight: 700 }}>Admin Dashboard</h1>
           <p style={{ opacity: 0.8, fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>RTV Survey Management System</p>
           <p style={{ opacity: 0.6, fontSize: 11, marginTop: 2 }}>Sell out team | Haier Thailand</p>
