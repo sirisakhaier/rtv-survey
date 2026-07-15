@@ -28,7 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [pathname, isLoginPage, router]);
 
   useEffect(() => {
-    if (role === 'viewer' && (pathname === '/admin/customers' || pathname === '/admin/products')) {
+    if (role === 'viewer' && (pathname === '/admin/customers' || pathname === '/admin/products' || pathname === '/admin/settings')) {
       router.replace('/admin');
     }
   }, [role, pathname, router]);
@@ -49,6 +49,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (role === 'admin') {
     navItems.push(
+      { href: '/admin/settings', label: 'ตั้งค่าอีเมล', icon: '⚙️' },
       { href: '/admin/customers', label: 'ห้าง/สาขา', icon: '🏪' },
       { href: '/admin/products', label: 'สินค้า', icon: '📦' }
     );

@@ -87,12 +87,26 @@ export async function POST(request: NextRequest) {
         const surveyHeader = await db.prepare(
           `SELECT sh.*, c.customer_name, c.store_id, c.store_name FROM survey_headers sh JOIN customers c ON c.id = sh.customer_id WHERE sh.id = ?`
         ).bind(headerId).first();
-        if (surveyHeader && env.RESEND_API_KEY) {
-          await sendSurveyNotification(
-            { ...(surveyHeader as any), detail_count: details?.length || 0 },
-            env.RESEND_API_KEY, env.ADMIN_EMAIL || '',
-            env.FROM_EMAIL || 'noreply@resend.dev', env.NEXT_PUBLIC_APP_URL || ''
-          );
+        if (surveyHeader) {
+          // Retrieve settings from database
+          await db.prepare('CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)').run();
+          const dbEmail = await db.prepare('SELECT value FROM settings WHERE key = ?').bind('admin_email').first<{ value: string }>();
+          const dbApiKey = await db.prepare('SELECT value FROM settings WHERE key = ?').bind('resend_api_key').first<{ value: string }>();
+
+          const finalEmail = dbEmail?.value || env.ADMIN_EMAIL || '';
+          const finalApiKey = dbApiKey?.value || env.RESEND_API_KEY || 're_fHu6Tprb_PXUb92k1QJ5MxSEGC8E6j9xS';
+
+          if (finalEmail && finalApiKey) {
+            await sendSurveyNotification(
+              { ...(surveyHeader as any), detail_count: details?.length || 0 },
+              finalApiKey,
+              finalEmail,
+              env.FROM_EMAIL || 'noreply@resend.dev',
+              env.NEXT_PUBLIC_APP_URL || ''
+            );
+          } else {
+            console.log('[Email] Dynamic email config or API key is not ready. Skipping notification.');
+          }
         }
       } catch (emailErr) {
         console.error('Email notification failed:', emailErr);
