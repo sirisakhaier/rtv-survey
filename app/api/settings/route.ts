@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       admin_email: emailRow?.value || env.ADMIN_EMAIL || '',
-      resend_api_key: apiKeyRow?.value || env.RESEND_API_KEY || 're_fHu6Tprb_PXUb92k1QJ5MxSEGC8E6j9xS',
+      resend_api_key: apiKeyRow?.value || env.RESEND_API_KEY || '',
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Failed to fetch settings' }, { status: 500 });

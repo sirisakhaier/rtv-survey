@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
           const dbApiKey = await db.prepare('SELECT value FROM settings WHERE key = ?').bind('resend_api_key').first<{ value: string }>();
 
           const finalEmail = dbEmail?.value || env.ADMIN_EMAIL || '';
-          const finalApiKey = dbApiKey?.value || env.RESEND_API_KEY || 're_fHu6Tprb_PXUb92k1QJ5MxSEGC8E6j9xS';
+          const finalApiKey = dbApiKey?.value || env.RESEND_API_KEY || '';
 
           if (finalEmail && finalApiKey) {
             await sendSurveyNotification(
