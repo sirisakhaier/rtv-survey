@@ -14,6 +14,7 @@ export async function GET(
     if (!object) return NextResponse.json({ error: 'File not found' }, { status: 404 });
     const headers = new Headers();
     headers.set('Content-Type', object.httpMetadata?.contentType || 'application/octet-stream');
+    headers.set('Content-Disposition', 'inline');
     headers.set('Cache-Control', 'public, max-age=31536000, immutable');
     headers.set('ETag', object.httpEtag);
     headers.set('Access-Control-Allow-Origin', '*');
