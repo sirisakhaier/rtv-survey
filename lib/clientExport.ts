@@ -1,5 +1,86 @@
 import ExcelJS from 'exceljs';
 
+function fixUrl(url: string): string {
+  if (!url) return '';
+  let cleanUrl = url.trim();
+  if (cleanUrl.startsWith('/')) {
+    return `${window.location.origin}${cleanUrl}`;
+  }
+  if (cleanUrl.includes('/api/files/')) {
+    const key = cleanUrl.substring(cleanUrl.indexOf('/api/files/'));
+    return `${window.location.origin}${key}`;
+  }
+  return cleanUrl;
+}
+
+async function fetchImageAsJpegBuffer(url: string): Promise<ArrayBuffer | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+
+    return new Promise<ArrayBuffer | null>((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const maxDim = 350;
+          let w = img.naturalWidth || 300;
+          let h = img.naturalHeight || 300;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            URL.revokeObjectURL(blobUrl);
+            resolve(null);
+            return;
+          }
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+
+          canvas.toBlob(
+            async (jpegBlob) => {
+              URL.revokeObjectURL(blobUrl);
+              if (!jpegBlob) {
+                resolve(null);
+                return;
+              }
+              const buf = await jpegBlob.arrayBuffer();
+              resolve(buf);
+            },
+            'image/jpeg',
+            0.85
+          );
+        } catch (e) {
+          console.error('Canvas processing error:', e);
+          URL.revokeObjectURL(blobUrl);
+          resolve(null);
+        }
+      };
+      img.onerror = (err) => {
+        console.error('Image load error for Excel:', url, err);
+        URL.revokeObjectURL(blobUrl);
+        resolve(null);
+      };
+      img.src = blobUrl;
+    });
+  } catch (err) {
+    console.error('Failed to fetch image for Excel embedding:', url, err);
+    return null;
+  }
+}
+
 export async function exportToExcelWithPhotos(includePhotos: boolean) {
   // 1. Fetch JSON data
   const res = await fetch('/api/export?format=json');
@@ -11,7 +92,7 @@ export async function exportToExcelWithPhotos(includePhotos: boolean) {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('RTV Survey Data');
 
-  // Define columns (always include image columns for consistency)
+  // Define columns
   const columns = [
     { header: 'รหัสแบบสำรวจ', key: 'survey_id', width: 15 },
     { header: 'ชื่อห้าง', key: 'customer_name', width: 18 },
@@ -113,21 +194,27 @@ export async function exportToExcelWithPhotos(includePhotos: boolean) {
           currentRow.height = 80;
 
           // Add cell hyperlinks & collect images to load
-          pPhotos.slice(0, 3).forEach((url, idx) => {
+          pPhotos.slice(0, 3).forEach((rawUrl, idx) => {
+            const url = fixUrl(rawUrl);
+            if (!url) return;
             const col = 17 + idx;
             const cell = worksheet.getCell(rowIndex, col);
             cell.value = { text: 'ดูรูปภาพ', hyperlink: url };
             cell.font = { color: { argb: 'FF0000FF' }, underline: true };
             imagePromises.push({ url, col, row: rowIndex });
           });
-          bPhotos.slice(0, 3).forEach((url, idx) => {
+          bPhotos.slice(0, 3).forEach((rawUrl, idx) => {
+            const url = fixUrl(rawUrl);
+            if (!url) return;
             const col = 20 + idx;
             const cell = worksheet.getCell(rowIndex, col);
             cell.value = { text: 'ดูรูปภาพ', hyperlink: url };
             cell.font = { color: { argb: 'FF0000FF' }, underline: true };
             imagePromises.push({ url, col, row: rowIndex });
           });
-          sPhotos.slice(0, 3).forEach((url, idx) => {
+          sPhotos.slice(0, 3).forEach((rawUrl, idx) => {
+            const url = fixUrl(rawUrl);
+            if (!url) return;
             const col = 23 + idx;
             const cell = worksheet.getCell(rowIndex, col);
             cell.value = { text: 'ดูรูปภาพ', hyperlink: url };
@@ -138,17 +225,23 @@ export async function exportToExcelWithPhotos(includePhotos: boolean) {
           currentRow.height = 22;
 
           // Write plain URL hyperlinks in cell blocks directly without images
-          pPhotos.slice(0, 3).forEach((url, idx) => {
+          pPhotos.slice(0, 3).forEach((rawUrl, idx) => {
+            const url = fixUrl(rawUrl);
+            if (!url) return;
             const cell = worksheet.getCell(rowIndex, 17 + idx);
             cell.value = { text: url, hyperlink: url };
             cell.font = { color: { argb: 'FF0000FF' }, underline: true };
           });
-          bPhotos.slice(0, 3).forEach((url, idx) => {
+          bPhotos.slice(0, 3).forEach((rawUrl, idx) => {
+            const url = fixUrl(rawUrl);
+            if (!url) return;
             const cell = worksheet.getCell(rowIndex, 20 + idx);
             cell.value = { text: url, hyperlink: url };
             cell.font = { color: { argb: 'FF0000FF' }, underline: true };
           });
-          sPhotos.slice(0, 3).forEach((url, idx) => {
+          sPhotos.slice(0, 3).forEach((rawUrl, idx) => {
+            const url = fixUrl(rawUrl);
+            if (!url) return;
             const cell = worksheet.getCell(rowIndex, 23 + idx);
             cell.value = { text: url, hyperlink: url };
             cell.font = { color: { argb: 'FF0000FF' }, underline: true };
@@ -160,32 +253,23 @@ export async function exportToExcelWithPhotos(includePhotos: boolean) {
     }
   }
 
-  // 3. Load and embed images (for Export with pictures)
+  // 3. Load, convert to standard JPEG, and embed images (for Export with pictures)
   if (includePhotos && imagePromises.length > 0) {
     for (const imgInfo of imagePromises) {
-      try {
-        const imgRes = await fetch(imgInfo.url);
-        if (!imgRes.ok) continue;
-        const arrayBuffer = await imgRes.arrayBuffer();
-        
-        // Find extension
-        const ext = imgInfo.url.split('.').pop()?.toLowerCase() || 'jpg';
-        const imageExtension = (ext === 'png' || ext === 'gif' || ext === 'jpeg' ? ext : 'jpeg') as 'png' | 'gif' | 'jpeg';
+      const jpegBuffer = await fetchImageAsJpegBuffer(imgInfo.url);
+      if (!jpegBuffer) continue;
 
-        const imageId = workbook.addImage({
-          buffer: arrayBuffer,
-          extension: imageExtension,
-        });
+      const imageId = workbook.addImage({
+        buffer: jpegBuffer,
+        extension: 'jpeg',
+      });
 
-        // Add to sheet
-        worksheet.addImage(imageId, {
-          tl: { col: imgInfo.col - 1, row: imgInfo.row - 1 },
-          ext: { width: 80, height: 80 },
-          editAs: 'oneCell',
-        });
-      } catch (err) {
-        console.error('Failed to load image for Excel embedding:', imgInfo.url, err);
-      }
+      // Add to sheet
+      worksheet.addImage(imageId, {
+        tl: { col: imgInfo.col - 1, row: imgInfo.row - 1 },
+        ext: { width: 80, height: 80 },
+        editAs: 'oneCell',
+      });
     }
   }
 
