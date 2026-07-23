@@ -25,7 +25,7 @@ async function fetchImageAsJpegBuffer(url: string): Promise<ArrayBuffer | null> 
       img.onload = () => {
         try {
           const canvas = document.createElement('canvas');
-          const maxDim = 350;
+          const maxDim = 300;
           let w = img.naturalWidth || 300;
           let h = img.naturalHeight || 300;
           if (w > maxDim || h > maxDim) {
@@ -109,7 +109,7 @@ export async function exportToExcelWithPhotos(includePhotos: boolean) {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('RTV Survey Data');
 
-  // Define columns
+  // Define columns (photo columns width 16)
   const columns = [
     { header: 'รหัสแบบสำรวจ', key: 'survey_id', width: 15 },
     { header: 'ชื่อห้าง', key: 'customer_name', width: 18 },
@@ -127,15 +127,15 @@ export async function exportToExcelWithPhotos(includePhotos: boolean) {
     { header: 'อาการเสีย', key: 'damage_issue', width: 25 },
     { header: 'มีกล่อง', key: 'box_package', width: 12 },
     { header: 'มีใบรายงานช่าง', key: 'service_doc', width: 15 },
-    { header: 'รูปสินค้า 1', key: 'product_photo_1', width: 22 },
-    { header: 'รูปสินค้า 2', key: 'product_photo_2', width: 22 },
-    { header: 'รูปสินค้า 3', key: 'product_photo_3', width: 22 },
-    { header: 'รูปกล่อง 1', key: 'box_photo_1', width: 22 },
-    { header: 'รูปกล่อง 2', key: 'box_photo_2', width: 22 },
-    { header: 'รูปกล่อง 3', key: 'box_photo_3', width: 22 },
-    { header: 'รูปใบรายงานช่าง 1', key: 'service_doc_photo_1', width: 22 },
-    { header: 'รูปใบรายงานช่าง 2', key: 'service_doc_photo_2', width: 22 },
-    { header: 'รูปใบรายงานช่าง 3', key: 'service_doc_photo_3', width: 22 }
+    { header: 'รูปสินค้า 1', key: 'product_photo_1', width: 16 },
+    { header: 'รูปสินค้า 2', key: 'product_photo_2', width: 16 },
+    { header: 'รูปสินค้า 3', key: 'product_photo_3', width: 16 },
+    { header: 'รูปกล่อง 1', key: 'box_photo_1', width: 16 },
+    { header: 'รูปกล่อง 2', key: 'box_photo_2', width: 16 },
+    { header: 'รูปกล่อง 3', key: 'box_photo_3', width: 16 },
+    { header: 'รูปใบรายงานช่าง 1', key: 'service_doc_photo_1', width: 16 },
+    { header: 'รูปใบรายงานช่าง 2', key: 'service_doc_photo_2', width: 16 },
+    { header: 'รูปใบรายงานช่าง 3', key: 'service_doc_photo_3', width: 16 }
   ];
 
   worksheet.columns = columns;
@@ -208,34 +208,24 @@ export async function exportToExcelWithPhotos(includePhotos: boolean) {
         const sPhotos = JSON.parse(detail.service_doc_photos || '[]') as string[];
 
         if (includePhotos) {
-          currentRow.height = 80;
+          currentRow.height = 70; // 70pt height fits 70px square thumbnail
 
-          // Add cell hyperlinks & collect images to load
           pPhotos.slice(0, 3).forEach((rawUrl, idx) => {
             const url = fixUrl(rawUrl);
             if (!url) return;
             const col = 17 + idx;
-            const cell = worksheet.getCell(rowIndex, col);
-            cell.value = { text: 'ดูรูปภาพ', hyperlink: url };
-            cell.font = { color: { argb: 'FF0000FF' }, underline: true };
             imagePromises.push({ url, col, row: rowIndex });
           });
           bPhotos.slice(0, 3).forEach((rawUrl, idx) => {
             const url = fixUrl(rawUrl);
             if (!url) return;
             const col = 20 + idx;
-            const cell = worksheet.getCell(rowIndex, col);
-            cell.value = { text: 'ดูรูปภาพ', hyperlink: url };
-            cell.font = { color: { argb: 'FF0000FF' }, underline: true };
             imagePromises.push({ url, col, row: rowIndex });
           });
           sPhotos.slice(0, 3).forEach((rawUrl, idx) => {
             const url = fixUrl(rawUrl);
             if (!url) return;
             const col = 23 + idx;
-            const cell = worksheet.getCell(rowIndex, col);
-            cell.value = { text: 'ดูรูปภาพ', hyperlink: url };
-            cell.font = { color: { argb: 'FF0000FF' }, underline: true };
             imagePromises.push({ url, col, row: rowIndex });
           });
         } else {
@@ -270,22 +260,31 @@ export async function exportToExcelWithPhotos(includePhotos: boolean) {
     }
   }
 
-  // 3. Load, convert to standard JPEG, and embed images using standard twoCellAnchor XML format
+  // 3. Load, convert to standard JPEG, and embed clickable images with exact 70x70 dimensions
   if (includePhotos && imagePromises.length > 0) {
     for (const imgInfo of imagePromises) {
       const imgData = await fetchImageBuffer(imgInfo.url);
-      if (!imgData) continue;
+      if (!imgData) {
+        // Fallback: write text hyperlink if image fails to load
+        const cell = worksheet.getCell(imgInfo.row, imgInfo.col);
+        cell.value = { text: 'ดูรูปภาพ', hyperlink: imgInfo.url };
+        cell.font = { color: { argb: 'FF0000FF' }, underline: true };
+        continue;
+      }
 
       const imageId = workbook.addImage({
         buffer: imgData.buffer,
         extension: imgData.extension,
       });
 
-      // Use valid twoCellAnchor XML format (tl & br) to prevent Excel drawing corruptions
+      // Embed image with exact 70x70px size and direct image hyperlink
       worksheet.addImage(imageId, {
-        tl: { col: imgInfo.col - 1 + 0.05, row: imgInfo.row - 1 + 0.05 },
-        br: { col: imgInfo.col - 0.05, row: imgInfo.row - 0.05 },
-        editAs: 'twoCell',
+        tl: { col: imgInfo.col - 1 + 0.1, row: imgInfo.row - 1 + 0.08 },
+        ext: { width: 70, height: 70 },
+        hyperlinks: {
+          hyperlink: imgInfo.url,
+          tooltip: 'เปิดดูรูปภาพขนาดใหญ่',
+        },
       } as any);
     }
   }
