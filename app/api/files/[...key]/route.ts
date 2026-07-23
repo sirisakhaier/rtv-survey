@@ -13,7 +13,9 @@ export async function GET(
     const object = await getFromR2(fileKey);
     if (!object) return NextResponse.json({ error: 'File not found' }, { status: 404 });
     const headers = new Headers();
-    headers.set('Content-Type', object.httpMetadata?.contentType || 'application/octet-stream');
+    headers.set('Content-Type', object.httpMetadata?.contentType || 'image/jpeg');
+    headers.set('Content-Length', object.size.toString());
+    headers.set('Accept-Ranges', 'bytes');
     headers.set('Content-Disposition', 'inline');
     headers.set('Cache-Control', 'public, max-age=31536000, immutable');
     headers.set('ETag', object.httpEtag);
