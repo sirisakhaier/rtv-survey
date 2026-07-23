@@ -81,6 +81,23 @@ async function fetchImageAsJpegBuffer(url: string): Promise<ArrayBuffer | null> 
   }
 }
 
+async function fetchImageBuffer(url: string): Promise<{ buffer: ArrayBuffer; extension: 'jpeg' | 'png' } | null> {
+  const canvasBuf = await fetchImageAsJpegBuffer(url);
+  if (canvasBuf) {
+    return { buffer: canvasBuf, extension: 'jpeg' };
+  }
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const arrayBuffer = await res.arrayBuffer();
+    const ext = url.split('.').pop()?.toLowerCase() || 'jpeg';
+    const extension = (ext === 'png' ? 'png' : 'jpeg') as 'jpeg' | 'png';
+    return { buffer: arrayBuffer, extension };
+  } catch {
+    return null;
+  }
+}
+
 export async function exportToExcelWithPhotos(includePhotos: boolean) {
   // 1. Fetch JSON data
   const res = await fetch('/api/export?format=json');
@@ -253,23 +270,23 @@ export async function exportToExcelWithPhotos(includePhotos: boolean) {
     }
   }
 
-  // 3. Load, convert to standard JPEG, and embed images (for Export with pictures)
+  // 3. Load, convert to standard JPEG, and embed images using standard twoCellAnchor XML format
   if (includePhotos && imagePromises.length > 0) {
     for (const imgInfo of imagePromises) {
-      const jpegBuffer = await fetchImageAsJpegBuffer(imgInfo.url);
-      if (!jpegBuffer) continue;
+      const imgData = await fetchImageBuffer(imgInfo.url);
+      if (!imgData) continue;
 
       const imageId = workbook.addImage({
-        buffer: jpegBuffer,
-        extension: 'jpeg',
+        buffer: imgData.buffer,
+        extension: imgData.extension,
       });
 
-      // Add to sheet
+      // Use valid twoCellAnchor XML format (tl & br) to prevent Excel drawing corruptions
       worksheet.addImage(imageId, {
-        tl: { col: imgInfo.col - 1, row: imgInfo.row - 1 },
-        ext: { width: 80, height: 80 },
-        editAs: 'oneCell',
-      });
+        tl: { col: imgInfo.col - 1 + 0.05, row: imgInfo.row - 1 + 0.05 },
+        br: { col: imgInfo.col - 0.05, row: imgInfo.row - 0.05 },
+        editAs: 'twoCell',
+      } as any);
     }
   }
 
