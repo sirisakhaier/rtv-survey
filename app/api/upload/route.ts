@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
     const surveyId = formData.get('survey_id') as string || 'temp';
     const type = (formData.get('type') as 'product' | 'box' | 'service') || 'product';
     if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    if (file.size === 0) return NextResponse.json({ error: 'File is empty or corrupted' }, { status: 400 });
     if (!ALLOWED_TYPES.includes(file.type)) return NextResponse.json({ error: 'Invalid file type' }, { status: 400 });
     if (file.size > MAX_SIZE_BYTES) return NextResponse.json({ error: 'File too large. Max 10MB.' }, { status: 400 });
     const buffer = await file.arrayBuffer();
